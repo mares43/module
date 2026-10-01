@@ -1,0 +1,6 @@
+# Commercially sensitive: meter data, PTF exports, derived arrays and the numeric report
+data/
+app/data.js
+REPORT.md
+__pycache__/
+*.pyc

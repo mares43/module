@@ -1,0 +1,466 @@
+<title>Elestas 2027 Baseload Desk</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a trading-desk worksheet. Inputs rail on the left, results on the right; stacks to one column on phones. */
+:root {
+  --bg: #f4f6f5;
+  --panel: #ffffff;
+  --ink: #14201c;
+  --ink-2: #4a5a54;
+  --ink-3: #7b8a84;
+  --line: #d9e0dd;
+  --grid: #e8ecea;
+  --accent: #0f6e5c;
+  --accent-soft: #dcefe9;
+  --hes: #2a78d6;
+  --ges: #eb6834;
+  --contract: #14201c;
+  --good: #1a7f37;
+  --bad: #c0362c;
+  --warn: #a86400;
+  --display: "Barlow Semi Condensed", "Arial Narrow", system-ui, sans-serif;
+  --body: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111816; --panel: #19221f; --ink: #e9efec; --ink-2: #b2c0ba; --ink-3: #82918b;
+    --line: #2c3834; --grid: #24302c; --accent: #4cc2a5; --accent-soft: #1c3a33;
+    --hes: #3987e5; --ges: #d95926; --contract: #e9efec;
+    --good: #4cc26a; --bad: #f07067; --warn: #e0a040; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111816; --panel: #19221f; --ink: #e9efec; --ink-2: #b2c0ba; --ink-3: #82918b;
+  --line: #2c3834; --grid: #24302c; --accent: #4cc2a5; --accent-soft: #1c3a33;
+  --hes: #3987e5; --ges: #d95926; --contract: #e9efec;
+  --good: #4cc26a; --bad: #f07067; --warn: #e0a040; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.45; margin: 0; }
+.wrap { max-width: 1320px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 48px; }
+header.top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px; padding-bottom: 14px; border-bottom: 1px solid var(--line); margin-bottom: 18px; }
+h1 { font-family: var(--display); font-weight: 700; font-size: 1.9rem; letter-spacing: .01em; margin: 0; text-wrap: balance; }
+h1 span { color: var(--accent); }
+.sub { color: var(--ink-2); max-width: 70ch; margin: 4px 0 0; }
+h2 { font-family: var(--display); font-weight: 600; font-size: 1.15rem; margin: 0 0 10px; letter-spacing: .02em; }
+h3 { font-family: var(--display); font-weight: 600; font-size: .82rem; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-2); margin: 0 0 8px; }
+.grid { display: grid; grid-template-columns: minmax(300px, 460px) minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 900px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+.rail { display: flex; flex-direction: column; gap: 14px; }
+.main { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; min-width: 0; }
+.field { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: center; margin-bottom: 10px; }
+.field label { color: var(--ink-2); font-size: .9rem; }
+.field input[type=number] { width: 86px; font-family: var(--mono); font-size: .9rem; padding: 4px 6px; border: 1px solid var(--line); border-radius: 4px; background: var(--bg); color: var(--ink); text-align: right; }
+.field input[type=range] { grid-column: 1 / -1; width: 100%; accent-color: var(--accent); }
+.field .hint { grid-column: 1 / -1; color: var(--ink-3); font-size: .78rem; }
+input:focus-visible, button:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.months { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin: 4px 0 10px; }
+.months label { display: flex; align-items: center; justify-content: center; gap: 2px; font-size: .78rem; font-family: var(--mono); border: 1px solid var(--line); border-radius: 4px; padding: 3px 0; cursor: pointer; color: var(--ink-2); }
+.months input { accent-color: var(--accent); margin: 0; }
+.months label:has(input:checked) { background: var(--accent-soft); color: var(--ink); border-color: var(--accent); }
+.check { display: flex; gap: 8px; align-items: center; font-size: .9rem; color: var(--ink-2); margin-bottom: 6px; }
+.check input { accent-color: var(--accent); }
+.btns { display: flex; flex-wrap: wrap; gap: 6px; }
+button { font-family: var(--body); font-weight: 600; font-size: .85rem; border: 1px solid var(--accent); background: var(--accent-soft); color: var(--ink); border-radius: 4px; padding: 6px 10px; cursor: pointer; }
+button:hover { background: var(--accent); color: var(--panel); }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
+.kpi { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; }
+.kpi .k { color: var(--ink-2); font-size: .8rem; text-transform: uppercase; letter-spacing: .06em; font-family: var(--display); font-weight: 600; }
+.kpi .v { font-family: var(--mono); font-size: 1.45rem; font-weight: 500; font-variant-numeric: tabular-nums; margin-top: 2px; }
+.kpi .d { font-size: .8rem; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.pos { color: var(--good); } .neg { color: var(--bad); }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: .86rem; font-variant-numeric: tabular-nums; }
+th { text-align: right; font-weight: 600; color: var(--ink-2); font-size: .76rem; text-transform: uppercase; letter-spacing: .05em; padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--grid); font-family: var(--mono); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; font-family: var(--body); }
+tr.exp td { font-weight: 600; border-top: 1px solid var(--line); }
+.pill { display: inline-block; font-family: var(--body); font-size: .72rem; font-weight: 600; padding: 1px 7px; border-radius: 10px; border: 1px solid currentColor; }
+.chart { width: 100%; height: auto; display: block; }
+.chart text { fill: var(--ink-2); font-family: var(--mono); font-size: 11px; }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: .82rem; color: var(--ink-2); margin-top: 6px; }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 2px; vertical-align: -1px; margin-right: 5px; }
+.legend i.line { height: 3px; vertical-align: 3px; border-radius: 0; }
+.two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; }
+@media (max-width: 1100px) { .two { grid-template-columns: minmax(0, 1fr); } }
+.note { color: var(--ink-2); font-size: .86rem; max-width: 75ch; }
+.note p { margin: 0 0 8px; }
+.price-guide { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.band { border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; }
+.band .row { display: flex; justify-content: space-between; gap: 8px; font-size: .88rem; padding: 2px 0; }
+.band .row b { font-family: var(--mono); font-weight: 500; font-variant-numeric: tabular-nums; }
+#tip { position: fixed; pointer-events: none; background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 4px; padding: 6px 8px; font-size: .8rem; font-family: var(--mono); box-shadow: 0 2px 8px rgba(0,0,0,.12); z-index: 10; white-space: pre; }
+.book { width: 100%; border-collapse: collapse; font-size: .84rem; }
+.book th { text-align: left; padding: 4px 4px; font-size: .7rem; }
+.book td { padding: 3px 4px; border-bottom: 1px solid var(--grid); text-align: left; font-family: var(--body); }
+.book input[type=number] { width: 52px; font-family: var(--mono); font-size: .84rem; padding: 3px 4px; border: 1px solid var(--line); border-radius: 4px; background: var(--bg); color: var(--ink); text-align: right; }
+.book select { font-family: var(--mono); font-size: .8rem; padding: 3px 2px; border: 1px solid var(--line); border-radius: 4px; background: var(--bg); color: var(--ink); }
+.book input[type=text] { width: 100%; min-width: 96px; font-size: .84rem; padding: 3px 4px; border: 1px solid var(--line); border-radius: 4px; background: var(--bg); color: var(--ink); }
+.book tr.sold td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+.book tr.prop td:first-child { box-shadow: inset 3px 0 0 var(--warn); }
+.book .x { border: 0; background: none; color: var(--ink-3); padding: 2px 6px; font-size: 1rem; }
+.book .x:hover { color: var(--bad); background: none; }
+.status { font-size: .72rem; min-width: 84px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Elestas 2027 <span>Baseload Desk</span></h1>
+      <p class="sub">Tracks the 2027 forward sales (ikili anlaşma) and tests the next one. The portfolio is all HES plus the unlicensed GES capacity that has left YEKDEM and is sold through the toplayıcı. It is modelled hour by hour from 2025–2026 meter data and EPİAŞ PTF.</p>
+    </div>
+  </header>
+
+  <div class="grid">
+    <aside class="rail">
+      <section class="panel" aria-labelledby="p-book">
+        <h3 id="p-book">Deal book · baseload 7×24</h3>
+        <div class="tablewrap"><table class="book" id="book"></table></div>
+        <div class="btns" style="margin-top:8px"><button id="btn-add" type="button">Add proposal</button></div>
+        <p class="note" style="font-size:.78rem;margin:8px 0 0">Sold rows are signed trades. Proposal rows are what-ifs; the sweep chart tests the first proposal's volume.</p>
+      </section>
+      <section class="panel" aria-labelledby="p-m">
+        <h3 id="p-m">2027 market view</h3>
+        <div class="field"><label for="lvl">PTF level vs history (%)</label><input id="lvl" type="number" min="50" max="150" step="1"><input id="lvl-r" type="range" min="60" max="140" step="1" aria-label="PTF level slider"><span class="hint">Scales every scenario's hourly USD PTF. 100 = same USD level as the source year.</span></div>
+        <div class="field"><label for="h2f">2026 PTF, Jul–Dec (% of 2025)</label><input id="h2f" type="number" min="50" max="130" step="1"><span class="hint">Jul–Dec 2026 PTF is not in the data, so 2025 prices are used, scaled by this. Q3 2026 came in about 18% lower in USD year on year.</span></div>
+        <div class="field"><label for="w1">Normal year (2025 water + 2025 PTF)</label><input id="w1" type="number" min="0" max="100" step="5"></div>
+        <div class="field"><label for="w2">Wet repeat (2026 water + 2026 PTF)</label><input id="w2" type="number" min="0" max="100" step="5"></div>
+        <div class="field"><label for="w3">Dry year (low water, PTF +15%)</label><input id="w3" type="number" min="0" max="100" step="5"></div>
+        <div class="field"><label for="w4">Low PTF, normal water</label><input id="w4" type="number" min="0" max="100" step="5"></div>
+        <div class="field"><label for="w5">Normal PTF, wet water</label><input id="w5" type="number" min="0" max="100" step="5"><span class="hint">Scenario weights in %; they are normalised to 100.</span></div>
+        <div class="field"><label for="dry">Dry-year HES factor (%)</label><input id="dry" type="number" min="30" max="100" step="5"><span class="hint">Dry year = the lower of 2025/2026 per month × this factor.</span></div>
+      </section>
+      <section class="panel" aria-labelledby="p-p">
+        <h3 id="p-p">Plants &amp; rules</h3>
+        <div class="field"><label for="mc">HES stop price (USD/MWh)</label><input id="mc" type="number" min="0" max="40" step="0.5"><span class="hint">HES is shut whenever PTF is below this. The contract is then covered from the market.</span></div>
+        <div class="field"><label for="g1">GES out all year (MW)</label><input id="g1" type="number" min="0" max="30" step="0.5"></div>
+        <div class="field"><label for="g2">GES out from February (MW)</label><input id="g2" type="number" min="0" max="30" step="0.5"></div>
+        <div class="field"><label for="g3">GES out from August (MW)</label><input id="g3" type="number" min="0" max="30" step="0.5"><span class="hint">of 30 MW installed unlicensed GES; output scaled pro rata from the 45-meter OEDAŞ total.</span></div>
+        <label class="check"><input id="agg" type="checkbox"> GES sold through toplayıcı (aggregator)</label>
+        <div class="field"><label for="fee">Aggregator fee (USD/MWh)</label><input id="fee" type="number" min="0" max="30" step="0.5"><span class="hint">With the toplayıcı, GES earns PTF − fee with no cap and counts as physical cover in the same portfolio.</span></div>
+        <div class="field"><label for="gcap">Without toplayıcı: cap (USD/MWh)</label><input id="gcap" type="number" min="0" max="200" step="1"><span class="hint">CB Kararı 11415: min(PTF, 90% × YEKDEM solar price) ≈ 53 $. Used only when the toplayıcı box is off.</span></div>
+        <label class="check"><input id="inc-bes" type="checkbox"> Include Beylikova BES in pool</label>
+        <label class="check"><input id="inc-res" type="checkbox"> Include Orhanlı RES in pool</label>
+      </section>
+    </aside>
+
+    <main class="main">
+      <section class="panel note" aria-labelledby="rec-h" id="rec-panel" hidden>
+        <h2 id="rec-h">Assessment</h2>
+        <div id="rec-body"></div>
+      </section>
+      <section class="kpis" id="kpis" aria-label="Headline results"></section>
+
+      <section class="panel">
+        <h2>Each deal against fair value</h2>
+        <div class="tablewrap"><table id="deals"></table></div>
+      </section>
+
+      <section class="panel">
+        <h2>Monthly cover: portfolio generation vs contracted MW</h2>
+        <svg id="ch-month" class="chart" viewBox="0 0 760 270" role="img" aria-label="Monthly average portfolio generation in MW with scenario range, and contracted MW"></svg>
+        <div class="legend"><span><i style="background:var(--hes)"></i>HES (expected)</span><span><i style="background:var(--ges)"></i>Post-YEKDEM GES (expected)</span><span><i class="line" style="background:var(--ink-3)"></i>Scenario low–high</span><span><i class="line" style="background:var(--contract)"></i>Sold MW</span><span><i class="line" style="background:var(--warn)"></i>Sold + proposals</span></div>
+      </section>
+
+      <section class="panel">
+        <h2>Scenario results</h2>
+        <div class="tablewrap"><table id="tbl"></table></div>
+      </section>
+
+      <div class="two">
+        <section class="panel">
+          <h2 id="sweep-h">Proposal volume sweep</h2>
+          <svg id="ch-sweep" class="chart" viewBox="0 0 520 260" role="img" aria-label="Expected and worst-case revenue against the first proposal's MW"></svg>
+          <div class="legend"><span><i class="line" style="background:var(--accent)"></i>Expected revenue</span><span><i class="line" style="background:var(--bad)"></i>Worst scenario</span><span><i class="line" style="background:var(--ink-3)"></i>Entered MW</span></div>
+        </section>
+        <section class="panel">
+          <h2>What 2026 taught us</h2>
+          <svg id="ch-hist" class="chart" viewBox="0 0 520 260" role="img" aria-label="HES monthly actual versus reconstructed potential output, 2025 and 2026"></svg>
+          <div class="legend"><span><i style="background:var(--hes)"></i>HES actual (GWh)</span><span><i style="background:var(--grid);border:1px dashed var(--ink-3)"></i>Water spilled at low PTF</span><span><i class="line" style="background:var(--ges)"></i>Monthly avg PTF (USD)</span></div>
+        </section>
+      </div>
+
+      <section class="panel note">
+        <h2>How the numbers are built</h2>
+        <p>Each scenario is a full 8,760-hour year. Generation comes from the 2025 and 2026 meter data mapped onto 2027 dates. 2026 HES output has the water spilled during near-zero PTF hours added back, because the plants ran at capacity just before and after those stops.</p>
+        <p>Every deal is settled against hourly PTF: revenue = own generation × PTF + contracted MWh × (deal price − PTF). When the portfolio produces less than the contracted MW, the gap is bought at PTF. HES is stopped whenever PTF falls below the stop price, even with a deal running, because buying the cover is cheaper than generating.</p>
+        <p>Fair value = scenario-weighted average PTF over the hours a deal covers. Value vs fair = (deal price − fair value) × contracted MWh, which is what the deal adds to or takes from expected revenue. Its other job is to lift the worst case.</p>
+      </section>
+    </main>
+  </div>
+</div>
+<div id="tip" hidden></div>
+<script src="data.js"></script>
+<script>
+(() => {
+  const D = window.ELESTAS_DATA;
+  const $ = id => document.getElementById(id);
+  const N = D.ptf["2025"].length;
+  const MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const DAYS = [31,28,31,30,31,30,31,31,30,31,30,31];
+  const month = new Int8Array(N);
+  { let h = 0; DAYS.forEach((d, m) => { for (let i = 0; i < d * 24; i++) month[h++] = m; }); }
+
+  // The signed trades live in the private data file; the public page ships with one example row.
+  const EXAMPLE_BOOK = [{ name: "Example deal", from: 0, to: 11, mw: 5, px: 60, sold: true }];
+  let book = (D.book || EXAMPLE_BOOK).map(d => ({ ...d }));
+  const SETTINGS = { lvl: 100, h2f: 82, w: [45, 25, 15, 10, 5], dry: 75, mc: 3, g: [5, 10, 5.5], agg: true, fee: 0, gcap: 53, bes: false, res: false };
+
+  if (D.recommendation?.html) { $("rec-body").innerHTML = D.recommendation.html; $("rec-panel").hidden = false; }
+
+  // ----- deal book editor -------------------------------------------------
+  const monthSel = (id, v) => `<select id="${id}" aria-label="month">${MON.map((m, i) => `<option value="${i}"${i === v ? " selected" : ""}>${m}</option>`).join("")}</select>`;
+  function drawBook() {
+    $("book").innerHTML = `<thead><tr><th>Deal</th><th>From</th><th>To</th><th>MW</th><th>$/MWh</th><th>Status</th><th></th></tr></thead><tbody>` +
+      book.map((d, i) => `<tr class="${d.sold ? "sold" : "prop"}">
+        <td><input type="text" id="bk-n${i}" value="${d.name.replace(/"/g, "&quot;")}" aria-label="Deal name"></td>
+        <td>${monthSel("bk-f" + i, d.from)}</td><td>${monthSel("bk-t" + i, d.to)}</td>
+        <td><input type="number" id="bk-m${i}" value="${d.mw}" min="0" max="80" step="0.5" aria-label="MW"></td>
+        <td><input type="number" id="bk-p${i}" value="${d.px}" min="0" max="200" step="0.5" aria-label="Price"></td>
+        <td><select id="bk-s${i}" class="status" aria-label="Status"><option value="1"${d.sold ? " selected" : ""}>Sold</option><option value="0"${d.sold ? "" : " selected"}>Proposal</option></select></td>
+        <td><button type="button" class="x" id="bk-x${i}" aria-label="Remove deal">×</button></td></tr>`).join("") + `</tbody>`;
+    book.forEach((d, i) => {
+      const upd = () => {
+        d.name = $("bk-n" + i).value; d.from = +$("bk-f" + i).value; d.to = Math.max(d.from, +$("bk-t" + i).value);
+        d.mw = parseFloat($("bk-m" + i).value) || 0; d.px = parseFloat($("bk-p" + i).value) || 0; const was = d.sold; d.sold = $("bk-s" + i).value === "1";
+        if (was !== d.sold || +$("bk-t" + i).value !== d.to) drawBook();
+        schedule();
+      };
+      ["n", "f", "t", "m", "p", "s"].forEach(k => $("bk-" + k + i).addEventListener(k === "n" ? "change" : "input", upd));
+      $("bk-x" + i).addEventListener("click", () => { book.splice(i, 1); drawBook(); schedule(); });
+    });
+  }
+  $("btn-add").addEventListener("click", () => { book.push({ name: "Proposal", from: 2, to: 4, mw: 15, px: 50, sold: false }); drawBook(); schedule(); });
+  const inDeal = (d, m) => m >= d.from && m <= d.to;
+
+  // ----- settings ---------------------------------------------------------
+  function setSettings(s) {
+    $("lvl").value = s.lvl; $("h2f").value = s.h2f; s.w.forEach((v, i) => $("w" + (i + 1)).value = v); $("dry").value = s.dry;
+    $("mc").value = s.mc; s.g.forEach((v, i) => $("g" + (i + 1)).value = v);
+    $("agg").checked = s.agg; $("fee").value = s.fee; $("gcap").value = s.gcap; $("inc-bes").checked = s.bes; $("inc-res").checked = s.res;
+  }
+  const num = id => { const v = parseFloat($(id).value); return isFinite(v) ? v : 0; };
+  function readSettings() {
+    return { lvl: num("lvl"), h2f: num("h2f"), w: [1,2,3,4,5].map(i => num("w" + i)), dry: num("dry"), mc: num("mc"),
+      g: [1,2,3].map(i => num("g" + i)), agg: $("agg").checked, fee: num("fee"), gcap: num("gcap"),
+      bes: $("inc-bes").checked, res: $("inc-res").checked };
+  }
+
+  // ----- model ------------------------------------------------------------
+  let dryCache = { f: null, v: null };
+  function dryHydro(factor) {
+    if (dryCache.f === factor) return dryCache.v;
+    const a = D.hydro["2025"], b = D.hydro["2026"], out = {};
+    for (const t of ["hes", "ges", "res", "bes"]) {
+      const sa = new Array(12).fill(0), sb = new Array(12).fill(0);
+      for (let h = 0; h < N; h++) { sa[month[h]] += a[t][h]; sb[month[h]] += b[t][h]; }
+      const f = t === "hes" ? factor : 1, arr = new Float64Array(N);
+      for (let h = 0; h < N; h++) arr[h] = (sa[month[h]] <= sb[month[h]] ? a[t][h] : b[t][h]) * f;
+      out[t] = arr;
+    }
+    dryCache = { f: factor, v: out };
+    return out;
+  }
+
+  function scenarios(s) {
+    const p26 = Float64Array.from(D.ptf["2026"], (v, h) => month[h] >= 6 ? v * s.h2f / 100 : v);
+    const defs = [
+      { name: "Normal year", hydro: D.hydro["2025"], ptf: D.ptf["2025"], k: 1 },
+      { name: "Wet repeat (2026)", hydro: D.hydro["2026"], ptf: p26, k: 1 },
+      { name: "Dry year", hydro: dryHydro(s.dry / 100), ptf: D.ptf["2025"], k: 1.15 },
+      { name: "Low PTF, normal water", hydro: D.hydro["2025"], ptf: p26, k: 1 },
+      { name: "Normal PTF, wet water", hydro: D.hydro["2026"], ptf: D.ptf["2025"], k: 1 },
+    ];
+    const wsum = s.w.reduce((a, b) => a + b, 0) || 1;
+    return defs.map((d, i) => ({ ...d, p: s.w[i] / wsum }));
+  }
+  const gesOut = s => MON.map((_, m) => s.g[0] + (m >= 1 ? s.g[1] : 0) + (m >= 7 ? s.g[2] : 0));
+
+  function prepare(s, sc) {
+    const gm = gesOut(s), lvl = s.lvl / 100;
+    return sc.map(x => {
+      const ptf = new Float64Array(N), gen = new Float64Array(N), hes = new Float64Array(N), ges = new Float64Array(N);
+      const mSum = new Float64Array(12), mCnt = new Float64Array(12);
+      let rev = 0, cost = 0;
+      for (let h = 0; h < N; h++) {
+        const p = x.ptf[h] * x.k * lvl; ptf[h] = p;
+        hes[h] = p >= s.mc ? x.hydro.hes[h] : 0;
+        ges[h] = x.hydro.ges[h] * gm[month[h]] / 30 + (s.bes ? x.hydro.bes[h] : 0) + (s.res ? x.hydro.res[h] : 0);
+        gen[h] = hes[h] + ges[h];
+        const gp = s.agg ? p - s.fee : Math.min(p, s.gcap > 0 ? s.gcap : Infinity);
+        const solar = x.hydro.ges[h] * gm[month[h]] / 30;
+        rev += hes[h] * p + (ges[h] - solar) * p + solar * gp; cost += hes[h] * s.mc;
+        mSum[month[h]] += p; mCnt[month[h]]++;
+      }
+      return { ...x, ptf, gen, hes, ges, merchant: rev - cost, mAvg: Array.from(mSum, (v, i) => v / mCnt[i]) };
+    });
+  }
+
+  function evaluate(deals, pre) {
+    const q = MON.map((_, m) => deals.reduce((a, d) => a + (inDeal(d, m) ? d.mw : 0), 0));
+    return pre.map(x => {
+      let hedge = 0;
+      deals.forEach(d => { for (let m = d.from; m <= d.to; m++) hedge += d.mw * DAYS[m] * 24 * (d.px - x.mAvg[m]); });
+      let short = 0, shortCost = 0, gen = 0, cmwh = 0;
+      for (let h = 0; h < N; h++) {
+        const qq = q[month[h]], g = x.gen[h]; gen += g; cmwh += qq;
+        if (qq > g) { short += qq - g; shortCost += (qq - g) * x.ptf[h]; }
+      }
+      const total = x.merchant + hedge;
+      return { name: x.name, p: x.p, gen, cmwh, merchant: x.merchant, hedge, total, short, shortCost, capture: x.merchant / gen };
+    });
+  }
+  const fairOf = (pre, d) => {
+    let f = 0; pre.forEach(x => { let s = 0, n = 0; for (let m = d.from; m <= d.to; m++) { s += x.mAvg[m] * DAYS[m]; n += DAYS[m]; } f += x.p * s / n; }); return f;
+  };
+  const rangeOf = (pre, d) => {
+    const v = pre.map(x => { let s = 0, n = 0; for (let m = d.from; m <= d.to; m++) { s += x.mAvg[m] * DAYS[m]; n += DAYS[m]; } return s / n; });
+    return [Math.min(...v), Math.max(...v)];
+  };
+
+  const ev = (rows, f) => rows.reduce((a, r) => a + r.p * f(r), 0);
+  const fmtM = v => (v / 1e6).toFixed(2);
+  const fmt0 = v => Math.round(v).toLocaleString("en-US");
+  const fmt1 = v => v.toFixed(1);
+  const sgn = v => (v >= 0 ? "+" : "−") + Math.abs(v / 1e6).toFixed(2);
+  const sgnk = v => (v >= 0 ? "+" : "−") + fmt0(Math.abs(v / 1e3));
+
+  // ----- charts -----------------------------------------------------------
+  const tip = $("tip");
+  function bindTips(svg) {
+    svg.querySelectorAll("[data-tip]").forEach(el => {
+      el.addEventListener("mousemove", e => { tip.textContent = el.dataset.tip; tip.hidden = false; tip.style.left = (e.clientX + 12) + "px"; tip.style.top = (e.clientY + 12) + "px"; });
+      el.addEventListener("mouseleave", () => tip.hidden = true);
+    });
+  }
+  const niceMax = v => { const p = Math.pow(10, Math.floor(Math.log10(v || 1))); const r = v / p; return (r <= 2 ? 2 : r <= 5 ? 5 : 10) * p; };
+
+  function drawMonthly(pre) {
+    const svg = $("ch-month"), W = 760, H = 270, L = 44, R = 12, T = 22, B = 28;
+    const qs = MON.map((_, m) => book.filter(d => d.sold && inDeal(d, m)).reduce((a, d) => a + d.mw, 0));
+    const qa = MON.map((_, m) => book.filter(d => inDeal(d, m)).reduce((a, d) => a + d.mw, 0));
+    const rows = MON.map((_, m) => {
+      const per = pre.map(x => { let h1 = 0, g1 = 0, n = 0; for (let h = 0; h < N; h++) if (month[h] === m) { h1 += x.hes[h]; g1 += x.ges[h]; n++; } return { hes: h1 / n, ges: g1 / n, p: x.p }; });
+      const tot = per.map(r => r.hes + r.ges);
+      return { hes: per.reduce((a, r) => a + r.p * r.hes, 0), ges: per.reduce((a, r) => a + r.p * r.ges, 0), lo: Math.min(...tot), hi: Math.max(...tot) };
+    });
+    const ymax = niceMax(Math.max(...rows.map(r => r.hi), ...qa) * 1.05);
+    const y = v => T + (H - T - B) * (1 - v / ymax), bw = (W - L - R) / 12;
+    let g = `<text x="4" y="10" font-size="10">MW</text>`;
+    for (let i = 0; i <= 4; i++) { const v = ymax * i / 4; g += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)"/><text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${v}</text>`; }
+    rows.forEach((r, m) => {
+      const x = L + m * bw + bw * 0.2, w = bw * 0.6, yH = y(r.hes), yG = y(r.hes + r.ges), cx = x + w / 2;
+      g += `<rect x="${x}" y="${yH}" width="${w}" height="${y(0) - yH}" fill="var(--hes)" rx="2"/>`;
+      if (r.ges > 0.05) g += `<rect x="${x}" y="${yG}" width="${w}" height="${Math.max(0, yH - yG - 2)}" fill="var(--ges)" rx="2"/>`;
+      g += `<line x1="${cx}" x2="${cx}" y1="${y(r.lo)}" y2="${y(r.hi)}" stroke="var(--ink-3)" stroke-width="1.5"/><line x1="${cx - 5}" x2="${cx + 5}" y1="${y(r.lo)}" y2="${y(r.lo)}" stroke="var(--ink-3)" stroke-width="1.5"/><line x1="${cx - 5}" x2="${cx + 5}" y1="${y(r.hi)}" y2="${y(r.hi)}" stroke="var(--ink-3)" stroke-width="1.5"/>`;
+      g += `<text x="${L + m * bw + bw / 2}" y="${H - 8}" text-anchor="middle">${MON[m]}</text>`;
+      g += `<rect x="${L + m * bw}" y="${T}" width="${bw}" height="${H - T - B}" fill="transparent" data-tip="${MON[m]} 2027\nHES ${fmt1(r.hes)} MW · GES ${fmt1(r.ges)} MW\nRange ${fmt1(r.lo)}–${fmt1(r.hi)} MW\nSold ${fmt1(qs[m])} MW${qa[m] !== qs[m] ? "\nWith proposals " + fmt1(qa[m]) + " MW" : ""}\nCover (low case) ${qa[m] ? Math.round(r.lo / qa[m] * 100) + "%" : "–"}"/>`;
+    });
+    const step = q => q.map((v, m) => (m ? "L" : "M") + `${L + m * bw},${y(v)}L${L + (m + 1) * bw},${y(v)}`).join("");
+    if (qa.some((v, m) => v !== qs[m])) g += `<path d="${step(qa)}" fill="none" stroke="var(--warn)" stroke-width="2.5" stroke-dasharray="6 3" pointer-events="none"/>`;
+    g += `<path d="${step(qs)}" fill="none" stroke="var(--contract)" stroke-width="2.5" pointer-events="none"/>`;
+    g += `<line x1="${L}" x2="${W - R}" y1="${y(0)}" y2="${y(0)}" stroke="var(--ink-3)"/>`;
+    svg.innerHTML = g; bindTips(svg);
+  }
+
+  function drawSweep(pre) {
+    const svg = $("ch-sweep"), W = 520, H = 260, L = 48, R = 12, T = 22, B = 30;
+    const pi = book.findIndex(d => !d.sold);
+    if (pi < 0) { $("sweep-h").textContent = "Proposal volume sweep"; svg.innerHTML = `<text x="${W / 2}" y="${H / 2}" text-anchor="middle">Add a proposal row to test its volume.</text>`; return; }
+    const prop = book[pi], maxMw = 40;
+    $("sweep-h").textContent = `Sweep: ${prop.name} (${MON[prop.from]}–${MON[prop.to]} @ ${prop.px} $)`;
+    const pts = [];
+    for (let mw = 0; mw <= maxMw; mw += 2.5) {
+      const deals = book.map((d, i) => i === pi ? { ...d, mw } : d);
+      const r = evaluate(deals, pre); pts.push({ mw, exp: ev(r, z => z.total), worst: Math.min(...r.map(z => z.total)) });
+    }
+    const vals = pts.flatMap(p => [p.exp, p.worst]);
+    let lo = Math.floor(Math.min(...vals) / 1e6), hi = Math.ceil(Math.max(...vals) / 1e6); if (hi - lo < 2) hi = lo + 2;
+    const x = v => L + (W - L - R) * v / maxMw, y = v => T + (H - T - B) * (1 - (v / 1e6 - lo) / (hi - lo));
+    let g = `<text x="4" y="10" font-size="10">M$</text>`;
+    for (let v = lo; v <= hi; v += Math.max(1, Math.ceil((hi - lo) / 5))) { const yy = y(v * 1e6); g += `<line x1="${L}" x2="${W - R}" y1="${yy}" y2="${yy}" stroke="var(--grid)"/><text x="${L - 6}" y="${yy + 4}" text-anchor="end">${v}</text>`; }
+    for (let v = 0; v <= maxMw; v += 10) g += `<text x="${x(v)}" y="${H - 10}" text-anchor="middle">${v} MW</text>`;
+    const line = (k, c) => `<path d="${pts.map((p, i) => (i ? "L" : "M") + x(p.mw) + "," + y(p[k])).join("")}" fill="none" stroke="${c}" stroke-width="2"/>`;
+    g += line("exp", "var(--accent)") + line("worst", "var(--bad)");
+    g += `<line x1="${x(Math.min(maxMw, prop.mw))}" x2="${x(Math.min(maxMw, prop.mw))}" y1="${T}" y2="${H - B}" stroke="var(--ink-3)" stroke-dasharray="4 3"/>`;
+    const best = pts.reduce((a, p) => p.worst > a.worst ? p : a, pts[0]);
+    g += `<circle cx="${x(best.mw)}" cy="${y(best.worst)}" r="4.5" fill="var(--bad)" stroke="var(--panel)" stroke-width="2"/><text x="${Math.min(x(best.mw) + 8, W - 130)}" y="${y(best.worst) + 16}">best worst-case: ${best.mw} MW</text>`;
+    pts.forEach(p => g += `<rect x="${x(p.mw) - 6}" y="${T}" width="12" height="${H - T - B}" fill="transparent" data-tip="${p.mw} MW @ ${prop.px} $\nExpected ${fmtM(p.exp)} M$\nWorst ${fmtM(p.worst)} M$"/>`);
+    svg.innerHTML = g; bindTips(svg);
+  }
+
+  function drawHistory() {
+    const svg = $("ch-hist"), W = 520, H = 260, L = 40, R = 40, T = 22, B = 42;
+    const rows = D.history.hes_monthly, pm = Object.fromEntries(D.history.ptf_monthly.map(r => [r.y + "-" + r.m, r.usd]));
+    const ymax = niceMax(Math.max(...rows.map(r => r.potential)) / 1000 * 1.05), pmax = 100;
+    const bw = (W - L - R) / rows.length, y = v => T + (H - T - B) * (1 - v / ymax), yp = v => T + (H - T - B) * (1 - v / pmax);
+    let g = `<text x="4" y="10" font-size="10">GWh</text><text x="${W - 4}" y="10" font-size="10" text-anchor="end">$/MWh</text>`, pl = "";
+    for (let i = 0; i <= 4; i++) { const v = ymax * i / 4; g += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)"/><text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${v}</text><text x="${W - R + 6}" y="${yp(pmax * i / 4) + 4}">${pmax * i / 4}</text>`; }
+    rows.forEach((r, i) => {
+      const x = L + i * bw + 1, w = bw - 2, a = r.actual / 1000, pt = r.potential / 1000, p = pm[r.y + "-" + r.m];
+      g += `<rect x="${x}" y="${y(pt)}" width="${w}" height="${Math.max(0, y(a) - y(pt))}" fill="var(--grid)" stroke="var(--ink-3)" stroke-dasharray="2 2" stroke-width=".8"/><rect x="${x}" y="${y(a)}" width="${w}" height="${y(0) - y(a)}" fill="var(--hes)" rx="1.5"/>`;
+      if (p !== undefined) pl += (pl ? "L" : "M") + (x + w / 2) + "," + yp(p);
+      if (r.m === 1 || r.m === 7) g += `<text x="${x + w / 2}" y="${H - 26}" text-anchor="middle">${MON[r.m - 1]}</text>`;
+      if (r.m === 1) g += `<text x="${x}" y="${H - 10}">${r.y}</text>`;
+      g += `<rect x="${x}" y="${T}" width="${w}" height="${H - T - B}" fill="transparent" data-tip="${MON[r.m - 1]} ${r.y}\nActual ${fmt0(r.actual)} MWh\nSpilled ${fmt0(r.potential - r.actual)} MWh\nPTF ${p !== undefined ? p.toFixed(1) + " $/MWh" : "n/a"}"/>`;
+    });
+    g += `<path d="${pl}" fill="none" stroke="var(--ges)" stroke-width="2" pointer-events="none"/>`;
+    svg.innerHTML = g; bindTips(svg);
+  }
+
+  // ----- render -----------------------------------------------------------
+  function render() {
+    const s = readSettings();
+    $("lvl-r").value = s.lvl;
+    const pre = prepare(s, scenarios(s));
+    const sold = book.filter(d => d.sold);
+    const merch = evaluate([], pre), rs = evaluate(sold, pre), ra = evaluate(book, pre);
+    const hasProp = book.some(d => !d.sold);
+    const E = rows => ev(rows, r => r.total), Wst = rows => Math.min(...rows.map(r => r.total));
+    const genE = ev(merch, r => r.gen);
+    const k = (label, v, d, cls = "") => `<div class="kpi"><div class="k">${label}</div><div class="v ${cls}">${v}</div><div class="d">${d}</div></div>`;
+    $("kpis").innerHTML =
+      k("Expected · sold book", fmtM(E(rs)) + " M$", `no deals ${fmtM(E(merch))} M$ · ${sgn(E(rs) - E(merch))}`, E(rs) >= E(merch) ? "pos" : "neg") +
+      k("Worst case · sold book", fmtM(Wst(rs)) + " M$", `no deals ${fmtM(Wst(merch))} M$ · ${sgn(Wst(rs) - Wst(merch))}`, Wst(rs) >= Wst(merch) ? "pos" : "neg") +
+      (hasProp ? k("With proposals", fmtM(E(ra)) + " M$", `worst ${fmtM(Wst(ra))} M$ · ${sgn(Wst(ra) - Wst(rs))} vs sold`, Wst(ra) >= Wst(rs) ? "pos" : "neg") : "") +
+      k("Hedge ratio · sold", Math.round(ev(rs, r => r.cmwh) / genE * 100) + "%", `${fmt0(ev(rs, r => r.cmwh))} MWh of ${fmt0(genE)} MWh`) +
+      k("Buy-back · sold", fmt0(ev(rs, r => r.short)) + " MWh", `bought at PTF when output < sold MW`);
+
+    let t = `<thead><tr><th>Deal</th><th>Status</th><th>Months</th><th>MW</th><th>MWh</th><th>Price $</th><th>Fair $</th><th>Range $</th><th>Value vs fair k$</th></tr></thead><tbody>`;
+    let tot = 0, totMwh = 0, totRev = 0;
+    book.forEach(d => {
+      const f = fairOf(pre, d), rg = rangeOf(pre, d); let hrs = 0; for (let m = d.from; m <= d.to; m++) hrs += DAYS[m] * 24;
+      const mwh = d.mw * hrs, v = (d.px - f) * mwh; if (d.sold) { tot += v; totMwh += mwh; totRev += d.px * mwh; }
+      t += `<tr><td>${d.name}</td><td><span class="pill" style="color:${d.sold ? "var(--accent)" : "var(--warn)"}">${d.sold ? "Sold" : "Proposal"}</span></td><td>${MON[d.from]}–${MON[d.to]}</td><td>${fmt1(d.mw)}</td><td>${fmt0(mwh)}</td><td>${fmt1(d.px)}</td><td>${fmt1(f)}</td><td>${fmt1(rg[0])}–${fmt1(rg[1])}</td><td class="${v >= 0 ? "pos" : "neg"}">${sgnk(v)}</td></tr>`;
+    });
+    t += `<tr class="exp"><td>Sold book</td><td></td><td></td><td></td><td>${fmt0(totMwh)}</td><td>${totMwh ? fmt1(totRev / totMwh) : "–"}</td><td></td><td></td><td class="${tot >= 0 ? "pos" : "neg"}">${sgnk(tot)}</td></tr></tbody>`;
+    $("deals").innerHTML = t;
+
+    let tb = `<thead><tr><th>Scenario</th><th>Weight</th><th>Gen GWh</th><th>Capture $</th><th>No deals M$</th><th>Sold book M$</th><th>Δ M$</th>${hasProp ? "<th>+ Proposals M$</th>" : ""}<th>Buy-back MWh</th></tr></thead><tbody>`;
+    merch.forEach((m, i) => {
+      const d = rs[i].total - m.total;
+      tb += `<tr><td>${m.name}</td><td>${Math.round(m.p * 100)}%</td><td>${fmt1(m.gen / 1000)}</td><td>${fmt1(m.capture)}</td><td>${fmtM(m.total)}</td><td>${fmtM(rs[i].total)}</td><td class="${d >= 0 ? "pos" : "neg"}">${sgn(d)}</td>${hasProp ? `<td>${fmtM(ra[i].total)}</td>` : ""}<td>${fmt0(rs[i].short)}</td></tr>`;
+    });
+    tb += `<tr class="exp"><td>Weighted</td><td>100%</td><td>${fmt1(genE / 1000)}</td><td>${fmt1(E(merch) / genE)}</td><td>${fmtM(E(merch))}</td><td>${fmtM(E(rs))}</td><td class="${E(rs) >= E(merch) ? "pos" : "neg"}">${sgn(E(rs) - E(merch))}</td>${hasProp ? `<td>${fmtM(E(ra))}</td>` : ""}<td>${fmt0(ev(rs, r => r.short))}</td></tr></tbody>`;
+    $("tbl").innerHTML = tb;
+
+    drawMonthly(pre);
+    drawSweep(pre);
+  }
+
+  $("lvl-r").addEventListener("input", () => { $("lvl").value = $("lvl-r").value; schedule(); });
+  let raf = 0; const schedule = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(render); };
+  document.querySelectorAll(".rail .field input, .rail .check input").forEach(el => el.addEventListener("input", schedule));
+
+  setSettings(SETTINGS);
+  drawBook();
+  drawHistory();
+  render();
+})();
+</script>
